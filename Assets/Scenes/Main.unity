@@ -517,7 +517,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88db16de2e2a5534daa6d2b9daff116f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sendInterval: 1
+  sendInterval: 0.1
   checkInterval: 10
   maxPlayersToCheck: 2
 --- !u!65 &1203392798
