@@ -1,10 +1,25 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private int playerId;
+    [SerializeField] private float moveSpeed = 50f;
+    public int PlayerId { get { return playerId; } }
+
+    private void Update()
+    {
+        HandleMovementInput();
+    }
+
+    private void HandleMovementInput()
+    {
+        float moveX = Input.GetAxisRaw("Horizontal");
+        float moveY = Input.GetAxisRaw("Vertical");
+
+        Vector3 movement = new Vector3(moveX, moveY, 0f).normalized * moveSpeed * Time.deltaTime;
+        transform.Translate(movement, Space.World);
+    }
+
     public void MovePlayer(Vector3 position)
     {
         transform.position = position;

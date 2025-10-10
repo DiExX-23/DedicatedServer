@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,33 +5,45 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private ApiClient api;
     [SerializeField] private List<PlayerController> players;
-    public string gameId;
+    [SerializeField] private string gameId;
 
-    public void Start()
+    private void Start()
     {
-        api.OnDataReceived += OnDataReceived;
+        if (api != null)
+        {
+            api.OnDataReceived += OnDataReceived;
+        }
+    }
+
+    public void SendPlayerPosition(int playerId, ServerData data)
+    {
+        if (api != null)
+        {
+            StartCoroutine(api.PostPlayerData(gameId, playerId.ToString(), data));
+        }
     }
 
     public void GetPlayerData(int playerId)
     {
-        StartCoroutine(api.GetPlayerData(gameId, playerId.ToString()));
-    }
-
-    public void OnDataReceived(int playerId, ServerData data)
-    {
-        Vector3 position = new Vector3(data.posX, data.posY, data.posZ);
-        players[playerId].MovePlayer(position);
-    }
-
-    public void SendPlayerPosition(int playerId)
-    {
-        Vector3 position = players[playerId].GetPosition();
-        ServerData data = new ServerData
+        if (api != null)
         {
-            posX = position.x,
-            posY = position.y,
-            posZ = position.z
-        };
-        StartCoroutine(api.PostPlayerData(gameId, playerId.ToString(), data));
+            StartCoroutine(api.GetPlayerData(gameId, playerId.ToString()));
+        }
     }
+
+    private void OnDataReceived(int playerId, ServerData data)
+    {
+        if (playerId >= 0 && playerId < players.Count && players[playerId] != null)
+        {
+            players[playerId].MovePlayer(new Vector3(data.posX, data.posY, data.posZ));
+        }
+
+        // Avisar al MainPositionSender (si existe) que se detectó a otro jugador
+        var main = FindObjectOfType<MainPositionSender>();
+        if (main != null)
+        {
+            main.NotifyOtherPlayerDetected(playerId);
+        }
+    }
+
 }
