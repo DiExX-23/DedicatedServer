@@ -83,8 +83,17 @@ public class MainPositionSender : MonoBehaviour
     {
         if (playerController != null && playerId != playerController.PlayerId)
         {
-            hasDetectedOtherPlayers = true;
-            Debug.Log($"[Main] Player {playerId} detected as active on the server!");
+            if (!hasDetectedOtherPlayers)
+            {
+                hasDetectedOtherPlayers = true;
+                Debug.Log($"[Main] Player {playerId} detected as active on the server! Adjusting checkInterval to sendInterval ({sendInterval}s).");
+                checkInterval = sendInterval;
+                if (checkRoutine != null)
+                {
+                    StopCoroutine(checkRoutine);
+                }
+                checkRoutine = StartCoroutine(CheckOtherPlayersFromServerLoop());
+            }
         }
     }
 

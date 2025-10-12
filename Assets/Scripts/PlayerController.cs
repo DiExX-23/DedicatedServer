@@ -3,7 +3,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private int playerId;
-    [SerializeField] private float moveSpeed = 50f;
+    [SerializeField] private float moveSpeed = 100f;
     public int PlayerId { get { return playerId; } }
 
     private void Update()
