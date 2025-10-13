@@ -2,9 +2,15 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private int playerId;
+    public int playerId;
     [SerializeField] private float moveSpeed = 100f;
-    public int PlayerId { get { return playerId; } }
+
+    // Propiedad pública para obtener o establecer el ID desde fuera
+        public int PlayerId
+        {
+            get => playerId;
+            set => playerId = value;
+        }
 
     private void Update()
     {

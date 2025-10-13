@@ -65,7 +65,7 @@ public class MainPositionSender : MonoBehaviour
             if (gameManager != null && playerController != null)
             {
                 string mainId = playerController.PlayerId.ToString();
-                for (int i = 0; i < maxPlayersToCheck; i++)
+                for (int i = 1; i < maxPlayersToCheck; i++)
                 {
                     if (i.ToString() != mainId)
                     {

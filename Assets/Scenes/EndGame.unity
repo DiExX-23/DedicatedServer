@@ -331,7 +331,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 97329634}
   m_CullTransparentMesh: 1
---- !u!1 &269258192
+--- !u!1 &381414438
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -339,37 +339,39 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 269258194}
-  - component: {fileID: 269258193}
+  - component: {fileID: 381414440}
+  - component: {fileID: 381414439}
   m_Layer: 0
-  m_Name: SceneManager
+  m_Name: EndGameManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &269258193
+--- !u!114 &381414439
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 269258192}
+  m_GameObject: {fileID: 381414438}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e889fa5bb4fd88b4680159163bf6ada7, type: 3}
+  m_Script: {fileID: 11500000, guid: 370978a220233ee48b2dc81661a5b868, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!4 &269258194
+  resultText: {fileID: 895541678}
+  backButton: {fileID: 1302995500}
+--- !u!4 &381414440
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 269258192}
+  m_GameObject: {fileID: 381414438}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 970.1067, y: 489.32736, z: 281.63614}
+  m_LocalPosition: {x: 600.1698, y: 235.11223, z: 169.25095}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -858,9 +860,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 269258193}
-        m_TargetAssemblyTypeName: ScenesManager, Assembly-CSharp
-        m_MethodName: goToMainMenu
+      - m_Target: {fileID: 381414439}
+        m_TargetAssemblyTypeName: EndGameManager, Assembly-CSharp
+        m_MethodName: OnBackToMainMenu
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1007,5 +1009,5 @@ SceneRoots:
   - {fileID: 1461620154}
   - {fileID: 617173162}
   - {fileID: 1043262404}
-  - {fileID: 269258194}
   - {fileID: 1105447614}
+  - {fileID: 381414440}
