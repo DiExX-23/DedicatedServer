@@ -3,50 +3,60 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using TMPro; // si usas TextMeshPro
+using System.Collections.Generic;
+using TMPro; // if you use TextMeshPro
 
 public class MainMenuManager : MonoBehaviour
 {
+    [Header("Panels")]
+    public GameObject mainPanel;
+    public GameObject optionsPanel;
+    public GameObject idSettings;
+
     [Header("UI")]
-    public TMP_InputField idInput;          // arrastra aquí el TMP_InputField del MainMenu
-    public Button playButton;               // arrastra aquí el botón PLAY
-    public TMP_Text errorText;
+    public TMP_InputField idInput;          // drag the TMP_InputField from the MainMenu here
+    public TMP_InputField gameIdInput;
+    public Button joinButton;               // drag the PLAY button here
+    public TMP_Text playerIDErrorText;
+    public TMP_Text gameIdErrorText;
 
     [Header("API / Config")]
-    public ApiClient apiClient;             // arrastra aquí tu ApiClient
-    public string gameId = "defaultRoom";   // cambia si tu juego usa otro gameId en la API
+    public ApiClient apiClient;             // drag your ApiClient here
+    public string gameId = "defaultRoom";   // change if your game uses another gameId in the API
 
-    private int playerID = -1;              // aquí se guardará el ID sólo si pasa las validaciones
-    private bool isChecking = false;        // evita múltiples comprobaciones simultáneas
-    private float checkTimeoutSeconds = 3f; // timeout por si la API no responde
+    private int playerID = -1;              // stores the ID only if it passes validation
+    public static int SavedGameID = -1;
+    private bool isChecking = false;        // prevents multiple simultaneous checks
+    private bool idIsValid = false;
+    private float checkTimeoutSeconds = 3f; // timeout in case the API doesn’t respond
 
     private void Start()
     {
-        if (playButton != null)
-            playButton.onClick.AddListener(OnPlayClicked);
+        if (joinButton != null)
+            joinButton.onClick.AddListener(OnDeselectedPlayerId);
         else
-            Debug.LogWarning("[MainMenuManager] playButton no asignado en el inspector.");
+            Debug.LogWarning("[MainMenuManager] joinButton not assigned in the inspector.");
 
         if (idInput == null)
-            Debug.LogWarning("[MainMenuManager] idInput no asignado en el inspector.");
+            Debug.LogWarning("[MainMenuManager] idInput not assigned in the inspector.");
 
         if (apiClient == null)
-            Debug.LogWarning("[MainMenuManager] apiClient no asignado en el inspector.");
+            Debug.LogWarning("[MainMenuManager] apiClient not assigned in the inspector.");
     }
 
-    private void OnPlayClicked()
+    public void OnDeselectedPlayerId()
     {
-        if (isChecking) return; // ya está verificando
-        string txt = (idInput != null) ? idInput.text.Trim() : "";
+        if (isChecking) return; // already checking
 
+        string txt = (idInput != null) ? idInput.text.Trim() : "";
         if (!int.TryParse(txt, out int id))
         {
-            Debug.LogWarning("[MainMenuManager] El ID debe ser un número entero.");
-            errorText.text = $"<b>El ID debe ser un número entero.</b>";
+            Debug.LogWarning("[MainMenuManager] The ID must be an integer.");
+            playerIDErrorText.text = $"<b>The ID must be an integer.</b>";
             return;
         }
 
-        errorText.text = $"<b>Comprobando si el ID existe...</b>";
+        playerIDErrorText.text = $"<b>Checking if the ID exists...</b>";
         StartCoroutine(CheckAndAssignIdCoroutine(id));
     }
 
@@ -56,10 +66,10 @@ public class MainMenuManager : MonoBehaviour
         bool exists = false;
         bool callbackFired = false;
 
-        // Handler para la respuesta del ApiClient.
+        // Handler for the ApiClient response
         void OnDataReceivedHandler(int receivedId, ServerData data)
         {
-            // Si el servidor responde con datos para ese ID, lo consideramos "elegido".
+            // If the server responds with data for that ID, we consider it "taken"
             if (receivedId == id)
             {
                 exists = true;
@@ -67,23 +77,23 @@ public class MainMenuManager : MonoBehaviour
             callbackFired = true;
         }
 
-        // Suscribimos al evento (si existe).
+        // Subscribe to the event (if it exists)
         if (apiClient != null)
             apiClient.OnDataReceived += OnDataReceivedHandler;
         else
         {
-            Debug.LogWarning("[MainMenuManager] apiClient es null — se omite verificación remota.");
-            callbackFired = true; // permitimos continuar (se considerará no-elegido)
+            Debug.LogWarning("[MainMenuManager] apiClient is null — skipping remote verification.");
+            callbackFired = true; // allow continuation (will be considered not-taken)
         }
 
-        // Llamamos a la coroutine que consulta al servidor.
+        // Call the coroutine that queries the server
         if (apiClient != null)
         {
-            // Llamamos la coroutine pública que ya existe en ApiClient
+            // Call the public coroutine that already exists in ApiClient
             yield return StartCoroutine(apiClient.GetPlayerData(gameId, id.ToString()));
         }
 
-        // Esperamos hasta que el callback se ejecute o hasta timeout
+        // Wait until the callback is executed or timeout
         float t = 0f;
         while (!callbackFired && t < checkTimeoutSeconds)
         {
@@ -91,30 +101,82 @@ public class MainMenuManager : MonoBehaviour
             yield return null;
         }
 
-        // Nos desuscribimos para no acumular handlers
+        // Unsubscribe to avoid accumulating handlers
         if (apiClient != null)
             apiClient.OnDataReceived -= OnDataReceivedHandler;
 
-        // Resultado de la verificación
+        // Verification result
         if (exists)
         {
-            Debug.LogWarning($"[MainMenuManager] El ID {id} ya está elegido. Elige otro.");
-            errorText.text = $"<b>El ID {id} ya está elegido. Elige otro.</b>";
+            Debug.LogWarning($"[MainMenuManager] ID {id} is already taken. Choose another.");
+            playerIDErrorText.text = $"<b>ID {id} is already taken. Choose another.</b>";
         }
         else
         {
             playerID = id;
-            Debug.Log($"[MainMenuManager] playerID asignado: {playerID}. Cargando escena GameIDMenu...");
-            // Cambia a la escena "GameIDMenu" (tal como pediste)
-            SceneManager.LoadScene("GameIDMenu");
+            Debug.Log($"[MainMenuManager] playerID assigned: {playerID}");
+            playerIDErrorText.text = $"<b>playerID assigned: {playerID}</b>";
+            idIsValid = true;
         }
 
         isChecking = false;
     }
 
-    // Método público para que otras clases obtengan el playerID asignado (si lo necesitas)
+    public void OnJoinClicked()
+    {
+        string txt = (gameIdInput != null) ? gameIdInput.text.Trim() : "";
+        if (!int.TryParse(txt, out int id))
+        {
+            Debug.LogWarning("[GameIDMenuManager] The GameID must be an integer.");
+            gameIdErrorText.text = $"<b>The ID must be an integer.</b>";
+            return;
+        }
+
+        if (idIsValid == true)
+        {
+            SavedGameID = id;
+            Debug.Log($"[GameIDMenuManager] GameID saved: {SavedGameID}");
+            SceneManager.LoadScene("Main");
+        }
+        else
+        {
+            gameIdErrorText.text = $"<b>Invalid player ID.</b>";
+        }
+    }
+
+    public void ChangePanel(GameObject activePanel)
+    {
+        // Deactivate all panels first
+        mainPanel.SetActive(false);
+        optionsPanel.SetActive(false);
+        idSettings.SetActive(false);
+        Debug.Log("Panel changed");
+
+        // Activate the selected panel
+        activePanel.SetActive(true);
+    }
+
+    public void BackToMainMenu()
+    {
+        // Activate only the main panel
+        mainPanel.SetActive(true);
+        optionsPanel.SetActive(false);
+    }
+
+    public void Exit()
+    {
+        Debug.Log("Exiting the game...");
+        Application.Quit();
+    }
+
+    // Public method for other classes to get the assigned playerID (if needed)
     public int GetPlayerID()
     {
         return playerID;
+    }
+
+    public int GetSavedGameID()
+    {
+        return SavedGameID;
     }
 }

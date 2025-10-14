@@ -14,10 +14,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject localPlayerPrefab;
 
     [Header("Spawns")]
-    [Tooltip("Asigna exactamente 4 spawn points en el inspector (orden 1..4).")]
+    [Tooltip("Assign exactly 4 spawn points in the inspector (order 1..4).")]
     [SerializeField] private Transform[] spawnPoints = new Transform[4];
 
-    // Estado de victoria (se pone true si el local gana usando el trigger)
+    // Win state (set to true if the local player wins using the trigger)
     public static bool won = false;
 
     private Dictionary<int, GameObject> remotePlayers = new Dictionary<int, GameObject>();
@@ -29,20 +29,20 @@ public class GameManager : MonoBehaviour
         if (api != null)
             api.OnDataReceived += OnDataReceived;
 
-        if (GameIDMenuManager.SavedGameID != -1)
+        if (MainMenuManager.SavedGameID != -1)
         {
-            gameId = GameIDMenuManager.SavedGameID.ToString();
-            Debug.Log($"[GameManager] gameId actualizado desde GameIDMenuManager: {gameId}");
+            gameId = MainMenuManager.SavedGameID.ToString();
+            Debug.Log($"[GameManager] gameId updated from MainMenuManager: {gameId}");
         }
         else
         {
-            Debug.Log($"[GameManager] gameId en inspector: {gameId}");
+            Debug.Log($"[GameManager] gameId from inspector: {gameId}");
         }
 
         int playerId = ResolveLocalPlayerId();
         if (playerId <= 0 || playerId > 4)
         {
-            Debug.LogWarning($"[GameManager] playerId {playerId} inválido. No se instanciará player local.");
+            Debug.LogWarning($"[GameManager] playerId {playerId} invalid. Local player will not be instantiated.");
             return;
         }
 
@@ -56,8 +56,8 @@ public class GameManager : MonoBehaviour
         if (existing != null && existing.PlayerId >= 1 && existing.PlayerId <= 4)
             return existing.PlayerId;
 
-        if (GameIDMenuManager.SavedGameID != -1)
-            return GameIDMenuManager.SavedGameID;
+        if (MainMenuManager.SavedGameID != -1)
+            return MainMenuManager.SavedGameID;
 
         return -1;
     }
@@ -66,7 +66,7 @@ public class GameManager : MonoBehaviour
     {
         if (localPlayerPrefab == null)
         {
-            Debug.LogError("[GameManager] localPlayerPrefab faltante.");
+            Debug.LogError("[GameManager] Missing localPlayerPrefab.");
             return;
         }
 
@@ -89,13 +89,13 @@ public class GameManager : MonoBehaviour
         else
             players[playerId] = null;
 
-        Debug.Log($"[GameManager] Player local instanciado con ID {playerId}.");
+        Debug.Log($"[GameManager] Local player instantiated with ID {playerId}.");
     }
 
-    private void AssignColorById(GameObject playerObj, int id)
+    private void AssignColorById(GameObject playerObj, int playerId)
     {
         Color c;
-        switch (id)
+        switch (playerId)
         {
             case 1: c = Color.red; break;
             case 2: c = Color.green; break;
@@ -135,20 +135,20 @@ public class GameManager : MonoBehaviour
 
     private void OnDataReceived(int playerId, ServerData data)
     {
-        // 1) Si el server informa de un jugador con ID == 10 -> carga EndGame.
-        //    No modificamos 'won' aquí (es importante que se mantenga su valor actual).
+        // 1) If the server reports a player with ID == 10 -> load EndGame.
+        //    We do not modify 'won' here (it's important to keep its current value).
         if (playerId == 10)
         {
-            // Evitamos recargar EndGame si ya estamos en esa escena
+            // Avoid reloading EndGame if already in that scene
             if (SceneManager.GetActiveScene().name != "EndGame")
             {
-                Debug.Log($"[GameManager] Se recibió playerId==10 desde servidor (player {playerId}). Cambiando a EndGame (won no modificado).");
+                Debug.Log($"[GameManager] Received playerId==10 from server (player {playerId}). Changing to EndGame (won not modified).");
                 SceneManager.LoadScene("EndGame");
             }
             return;
         }
 
-        // 2) Si no es ID=10, manejamos el movimiento/instanciación normal
+        // 2) If not ID=10, handle normal movement/instantiation
         Vector3 receivedPos = new Vector3(data.posX, data.posY, data.posZ);
 
         if (playerId >= 0 && playerId < players.Count && players[playerId] != null)
@@ -171,11 +171,11 @@ public class GameManager : MonoBehaviour
                     GameObject newPlayer = Instantiate(remotePlayerPrefab, receivedPos, Quaternion.identity);
                     newPlayer.name = $"RemotePlayer_{playerId}";
                     remotePlayers[playerId] = newPlayer;
-                    Debug.Log($"[GameManager] Nuevo jugador remoto {playerId} instanciado en {receivedPos}.");
+                    Debug.Log($"[GameManager] New remote player {playerId} instantiated at {receivedPos}.");
                 }
                 else
                 {
-                    Debug.LogError("[GameManager] remotePlayerPrefab no asignado.");
+                    Debug.LogError("[GameManager] remotePlayerPrefab not assigned.");
                 }
             }
         }
